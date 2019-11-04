@@ -1,0 +1,2 @@
+# Domain of interest
+We have choose climate change as topic. We think this is one of the most important problems in our society, and as young people we are very concerned about it. We think that technology and specially data science can be very useful to identify the causes and reduce global warming. 
