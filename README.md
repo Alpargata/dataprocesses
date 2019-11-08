@@ -1,3 +1,6 @@
+# Git hub repository
+https://github.com/Alpargata/dataprocesses
+
 # Domain of interest
 Our topic of interest is **climate change** and **global warming**.
 
@@ -23,17 +26,17 @@ In this section we summarize information about the data we have found.
 ## CO2 emissions
 1. URL: https://datahub.io/core/co2-ppm
 2. Data from this dataset is CO2 presence in air, measured as the mole fraction in dry air. Data are sourced from the US Government’s Earth System Research Laboratory, Global Monitoring Division. Data from March 1958 through April 1974 have been obtained by C. David Keeling of the Scripps Institution of Oceanography (SIO) and were obtained from the Scripps website (scrippsco2.ucsd.edu).
-3. 
+3. (727, 6)
 4.
 
 ## Black-backed gulls movement
 1. URL: https://www.datarepository.movebank.org/handle/10255/move.575
 2. Data is about the location of black-backed gulls along their trips. The project is addressed by the organization [Movebank](https://www.movebank.org/). Data is gathered by attaching GPS data loggers to eight incubating birds and collecting information on diet and habitat use. The loggers recorded data for 10–19 days to allow flight-path reconstruction.
-3. 
+3. (49619, 17)
 4.
 
 ## International comprehensive Ocean-Atmosphere
 1. URL: https://rda.ucar.edu/datasets/ds548.0/
 2.
-3. 
+3. (100000, 76)
 4. 
