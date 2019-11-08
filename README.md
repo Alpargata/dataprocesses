@@ -2,7 +2,9 @@
 Our topic of interest is **climate change** and **global warming**.
 
 ## Why are we interested?
-We think this climate change is one of the most important problems in our society; in the present and near future. As young people, we are very concerned about it. We think that technology and specially data science can be very useful to identify the causes, the consequences and reduce global warming. As this is a wide topic, there are a lot of public and varied data available in the internet that we can explore: global temperatures, CO2 emissions, biodiversity, energy production, mobility, etc. Due to all this, we think that it is a really interesting domain to tackle with this project.
+We think this climate change is one of the most important problems in our society; in the present and near future. As young people, we are very concerned about it. 
+We think that technology and specially data science can be very useful to identify the causes, the consequences and reduce global warming. As this is a wide topic, there are a lot of public and varied data available in the internet that we can explore: global temperatures, CO2 emissions, biodiversity, energy production, mobility, etc. 
+Due to all this, we think that it is a really interesting domain to tackle with this project.
 
 ## Examples of data driven projects
 It is expectable that many people and organizations are working with data to address this issue. We can find some examples:
@@ -11,6 +13,27 @@ It is expectable that many people and organizations are working with data to add
 - [__Cleaning Mexico City’s air with transformational climate policies through big data pattern analysis in traffic & social mobility__](http://www.dataforclimateaction.org/meet-the-winners/): Mexico City is the most congested city in the world. Traffic data from Waze, data from EPA MOVES-Mexico, and Google Places’ Popular Times are used to optimize transportation and reduce CO2 emissions by 3.4%.
 
 ## Data driven questions we hope to answer
-1. Is the climate change affecting all areas of the Earth equally, or are there some regions suffering more?
-2. What was (in terms of climate change) the 'worst year' for our planet? (more polluted year, higher temperature...)
-3. What are the countries that pollute the most?
+1. __Is the climate change affecting all areas of the Earth equally, or are there some regions suffering more?__
+2. __What was (in terms of climate change) the 'worst year' for our planet? (more polluted year, higher temperature...)__
+3. __What are the countries that pollute the most?__
+
+# Finding data
+In this section we summarize information about the data we have found.
+
+## CO2 emissions
+1. URL: https://datahub.io/core/co2-ppm
+2. Data from this dataset is CO2 presence in air, measured as the mole fraction in dry air. Data are sourced from the US Government’s Earth System Research Laboratory, Global Monitoring Division. Data from March 1958 through April 1974 have been obtained by C. David Keeling of the Scripps Institution of Oceanography (SIO) and were obtained from the Scripps website (scrippsco2.ucsd.edu).
+3. 
+4.
+
+## Black-backed gulls movement
+1. URL: https://www.datarepository.movebank.org/handle/10255/move.575
+2. Data is about the location of black-backed gulls along their trips. The project is addressed by the organization [Movebank](https://www.movebank.org/). Data is gathered by attaching GPS data loggers to eight incubating birds and collecting information on diet and habitat use. The loggers recorded data for 10–19 days to allow flight-path reconstruction.
+3. 
+4.
+
+## International comprehensive Ocean-Atmosphere
+1. URL: https://rda.ucar.edu/datasets/ds548.0/
+2.
+3. 
+4. 
