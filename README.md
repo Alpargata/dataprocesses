@@ -3,8 +3,8 @@ Our topic of interest is **climate change** and **global warming**.
 
 ## Why are we interested?
 We think this climate change is one of the most important problems in our society; in the present and near future. As young people, we are very concerned about it.   
-We think that technology and specially data science can be very useful to identify the causes, the consequences and reduce global warming. As this is a wide topic, there are a lot of public and varied data available in the internet that we can explore: global temperatures, CO2 emissions, biodiversity, energy production, mobility, etc.   
-Due to all this, we think that it is a really interesting domain to tackle with this project.  
+We believe that technology and specially data science can be very useful to identify the causes, the consequences and reduce global warming. As this is a wide topic, there are a lot of public and varied data available in the internet that we can explore: global temperatures, CO2 emissions, biodiversity, energy production, mobility, etc.   
+Due to all this, we think that it is a really interesting domain to tackle with this project.
 
 ## Examples of data driven projects
 It is expectable that many people and organizations are working with data to address this issue. We can find some examples:
@@ -23,17 +23,17 @@ In this section we summarize information about the data we have found.
 ## CO2 emissions
 1. URL: https://datahub.io/core/co2-ppm
 2. Data from this dataset is CO2 presence in air, measured as the mole fraction in dry air. Data are sourced from the US Government’s Earth System Research Laboratory, Global Monitoring Division. Data from March 1958 through April 1974 have been obtained by C. David Keeling of the Scripps Institution of Oceanography (SIO) and were obtained from the Scripps website (scrippsco2.ucsd.edu).  
-3. It has 727 rows and 6 columns.  
-4. The first and third questions can not be answered, because we only have the CO2 level in one observatorium. About the second answer, we can obtain which year was the one with more emissions of CO2.  
+3. It has 727 observations and 6 features.  
+4. The first and third questions cannot be answered, because we only have the CO2 level data refer to one observatorium. With respect to the second one, we can obtain the year with more CO2 emissions.  
 
 ## Black-backed gulls movement
 1. URL: https://www.datarepository.movebank.org/handle/10255/move.575  
 2. Data is about the location of black-backed gulls along their trips. The project is addressed by the organization [Movebank](https://www.movebank.org/). Data is gathered by attaching GPS data loggers to eight incubating birds and collecting information on diet and habitat use. The loggers recorded data for 10–19 days to allow flight-path reconstruction.  
 3. In this dataset can be found 49619 observations and 17 features.
-4. We can not find an answer to any of the question. The first one can have a partial response, because we only have data in a zone of America. For the second one we only have one year, so we can't compare. And we don't have how each country pollute, so the third one won't have an answer.  
+4. We cannot find an answer to any of the questions. We could give a partial response for the first one, because we only have data in a zone of America. For the second one we only have one year, so we can't compare. We don't know the pollution level of each country, so the third question won't be answered too.  
 
 ## International comprehensive Ocean-Atmosphere (ICOADS-NOAA)
 1. URL: https://rda.ucar.edu/datasets/ds548.0/  
 2. This data was collected by the NOAA (U.S. National Oceanic and Atmospheric Administration).  
-3. We can find 100000 rows and 76 columns.  
-4. We can answer the first and the second questions because we have different years and zones of the globe. Maybe we can say something about the zone that pollute most, but the country it's not possible.  
+3. We can find 100000 observations and 76 features.  
+4. We can answer the first and the second questions because we have data from different years and zones of the globe. We might say something about the zone that pollutes the most, but not the country.
