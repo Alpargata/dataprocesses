@@ -4,7 +4,7 @@ Our topic of interest is **climate change** and **global warming**.
 ## Why are we interested?
 We think this climate change is one of the most important problems in our society; in the present and near future. As young people, we are very concerned about it.   
 We believe that technology and specially data science can be very useful to identify the causes, the consequences and reduce global warming. As this is a wide topic, there are a lot of public and varied data available in the internet that we can explore: global temperatures, CO2 emissions, biodiversity, energy production, mobility, etc.   
-Due to all this, we think that it is a really interesting domain to tackle with this project.
+Due to all of these reasons, we think that it is a really interesting domain to tackle with in this project.
 
 ## Examples of data driven projects
 It is expectable that many people and organizations are working with data to address this issue. We can find some examples:
