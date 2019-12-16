@@ -7,7 +7,7 @@ data<-read.csv(
   "https://raw.githubusercontent.com/Alpargata/dataprocesses/master/data/seaice.csv",
   header=TRUE)
 summary(data)
-
+head(data)
 # Data Preprocess
 
 df <- subset( data, select = -Source.Data ) #We remove the link provided, since its
@@ -17,9 +17,9 @@ df$Date=as.Date(paste(sep="-",df$Year,df$Month,df$Day)) # we aggregate the date 
 ag<-aggregate(df['Extent'], by=df['Date'], sum)
 names(ag)[names(ag)=="Extent"]<-"Global Extent"
 rs<-aggregate(x = df["Extent"], by=df["Date"], 
-             FUN = function(a){
-               y<-a[1]-a[2];
-             })
+              FUN = function(a){
+                y<-a[1]-a[2];
+              })
 names(rs)[names(rs)=="Extent"]<-"North-South Difference"
 
 df <- merge(df,ag,by="Date")
@@ -52,7 +52,7 @@ ggplot(data=north,aes(x = Date, y = Extent, color=hemisphere))+
 
 ggplot(data=south,aes(x = Date, y = Extent, color=hemisphere))+
   geom_point()+
-geom_smooth(method='lm', formula= y~x)
+  geom_smooth(method='lm', formula= y~x)
 
 # The evolution for the global extension of ice can be seen in here:
 ggplot(data=df,aes(x = Date, y = df$`Global Extent`))+
