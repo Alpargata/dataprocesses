@@ -4,6 +4,10 @@ library(car)
 library(FactoMineR)
 library(GGally)
 library(plotly)
+library(Hmisc)
+library(corrplot)
+
+
 data<-read.csv(
   "https://raw.githubusercontent.com/Alpargata/dataprocesses/master/data/MergedDataset.csv",
   header=TRUE)
@@ -35,20 +39,24 @@ ggplot(data,aes(x = data$SouthIceAverageExtent, y = data$Trend.for.Co2.amount)) 
   geom_point() + 
   geom_smooth(method='lm', formula= y~x)
 
+# We will explore more in depth relations between north hemisphere and co2
+
+r=cov(data[,c(2,6)]) # We have here the covariance matrix between North and CO2.
+rcor=rcorr(as.matrix(data[,c(2,6)])) # Here the correlation matrix
+corrplot(rcor$r) # here we can see that there exists a negative relation between co2 and Ice surface
+
+pcor(data[,-1]) # We apply the pearson partial correlation to see the isolated effect between those two,
+# without taking into account the other variables
+
+# for the partial correlation, we obtained values of -0.4467835, confirming our assumptions of negative 
+# relationship
+
+anova(data)
+
 fit <- lm(NorthIceAverageExtent ~ Trend.for.Co2.amount ,data = data)
 
 scatterplot <- data %>%
   ggplot(aes(x = Trend.for.Co2.amount, y = NorthIceAverageExtent, color = Date)) + 
-  ggtitle("Correlation between North Hemisphere Ice surface and CO2 concentration")+
-  theme(plot.title = element_text(hjust = 0.5))+
-  geom_point() + 
-  labs(x = "Co2 Amounts (mole fraction)", 
-       y = "Ice extent (10^6 km)") +
-  theme_classic() +
-  theme(legend.position = "none")
-
-
-  ggplot(data,aes(x = Trend.for.Co2.amount, y = NorthIceAverageExtent, color = Date)) + 
   ggtitle("Correlation between North Hemisphere Ice surface and CO2 concentration")+
   theme(plot.title = element_text(hjust = 0.5))+
   geom_point() + 
