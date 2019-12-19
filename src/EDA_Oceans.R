@@ -1,10 +1,11 @@
-setwd("C:/Users/bea4e/Desktop/University/Data Processes/Assignment/")
-
 #libraries
 library(plyr)
+library(tidyr)
+library(ggplot2)
+library(rworldmap)
+library(rworldxtra)
 
-ocean <- read.csv("Dataset_Oceans.csv", header = TRUE)
-ocean <- read.csv("https://github.com/Alpargata/dataprocesses/blob/master/data/icoads_noaa.csv", header = TRUE)
+ocean <- read.csv('../data/icoads_noaa.csv', header = TRUE)
 
 
 # Choosing the important features
@@ -15,7 +16,6 @@ ocean <- read.csv("https://github.com/Alpargata/dataprocesses/blob/master/data/i
 # the cells are empty.
 newCols <- c("month", "day", "latitude", "longitude", "air_temperature", "sea_surface_temp", "sea_level_pressure")
 newOcean <- ocean[newCols]
-
 
 
 # Features engineering and Pearson correlation
@@ -35,20 +35,72 @@ newOcean.cor = cor(newOcean)
 plot(newOcean$latitude, newOcean$sea_surface_temp)
 
 # we aggregate the date to easen the manipulation
-newOcean$Date <- with(newOcean, sprintf("%d-%02d-%03d", year, month, day))
+newOcean$Date <- with(newOcean, sprintf("%d-%02d", month, day))
 
-#Creating variable Heisphere by binning the longitude
+#Creating variable Hemisphere by binning the latitude
 newOcean$Hemisphere <- cut(newOcean$latitude, c(-90,0, 90))
-newOcean$Emisphere <- revalue(newOcean$Hemisphere, c("(-90,0]"="South"))
-newOcean$Emisphere <- revalue(newOcean$Hemisphere, c("(0,90]"="North"))
+newOcean$Hemisphere <- revalue(newOcean$Hemisphere, c("(-90,0]"="South"))
+newOcean$Hemisphere <- revalue(newOcean$Hemisphere, c("(0,90]"="North"))
 
 
 
-#TODO: Graphics
+#Graphs
 
-# Plotting air_temperature
+# # Plotting air_temperature
+# layout(matrix(1:2,ncol=2), width = c(2,1),height = c(1,1))
+# 
+# newmap <- getMap(resolution = "high")
+# pal = colorRampPalette(c("blue","lightblue", "yellow", "red"))
+# newOcean$order = findInterval(newOcean$air_temperature, sort(newOcean$air_temperature))
+# plot(newmap, xlim = c(-20, 59), ylim = c(35, 71), asp = 1, col = "antiquewhite1")
+# points(newOcean$longitude, newOcean$latitude, col=pal(nrow(newOcean))[newOcean$order], pch = 16, cex = .6)
+# 
+# colfunc <- colorRampPalette(c("red","yellow", "lightblue", "blue"))
+# legend_image <- as.raster(matrix(colfunc(20), ncol=1))
+# plot(c(0,2),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = 'Air temperature in °C')
+# text(x=0.8, y = seq(0,0.5,l=4), labels = seq(from = -20, to = 40, by = 20))
+# rasterImage(legend_image, 0, 0, 0.5,0.5)
+
+
+# Plotting sea_level_pressure
+layout(matrix(1:2,ncol=2), width = c(2,1),height = c(1,1))
+
 newmap <- getMap(resolution = "high")
-pal = colorRampPalette(c("blue","white", "yellow", "red"))
-newOcean$order = findInterval(newOcean$air_temperature, sort(newOcean$air_temperature))
+pal = colorRampPalette(c("blue","lightblue", "yellow", "red"))
+newOcean$order = findInterval(newOcean$sea_level_pressure, sort(newOcean$sea_level_pressure))
 plot(newmap, xlim = c(-20, 59), ylim = c(35, 71), asp = 1, col = "antiquewhite1")
 points(newOcean$longitude, newOcean$latitude, col=pal(nrow(newOcean))[newOcean$order], pch = 16, cex = .6)
+
+colfunc <- colorRampPalette(c("red","yellow", "lightblue", "blue"))
+legend_image <- as.raster(matrix(colfunc(20), ncol=1))
+plot(c(0,2),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = 'Pressure in hPa')
+text(x=0.8, y = seq(0,1,l=2), labels = seq(955.5,1046.6,l=2))
+rasterImage(legend_image, 0, 0, 0.5,0.5)
+
+#Avarage temperature by months for the different hemispheres
+ocean_south <- newOcean %>% subset(Hemisphere == "South")
+ocean_south <- aggregate(ocean_south,
+                         by = list(ocean_south$month),
+                         FUN = mean)
+cols <- c("month", "air_temperature", "sea_surface_temp", "sea_level_pressure")
+ocean_south <- ocean_south[cols]
+
+ocean_north <- newOcean %>% subset(Hemisphere == "North")
+ocean_north <- aggregate(ocean_north,
+                         by = list(ocean_north$month),
+                         FUN = mean)
+ocean_north <- ocean_north[cols]
+
+ggplot(data=ocean_north, aes(x=month, y=air_temperature,2)) +
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))+
+  theme(axis.text.x = element_text(size=10, angle=45))+
+  ggtitle("Sea level pressure by month in the Northern Emisphere")+
+  geom_bar(stat="identity", fill="steelblue")+
+  theme_minimal()
+
+ggplot(data=ocean_south, aes(x=month, y=air_temperature,2)) +
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))+
+  theme(axis.text.x = element_text(size=10, angle=45))+
+  ggtitle("Sea level pressure by month in the Southern Emisphere")+
+  geom_bar(stat="identity", fill="steelblue")+
+  theme_minimal()
