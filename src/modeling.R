@@ -23,6 +23,9 @@ joined_df<-inner_join(ice_data, co2_data, by='Date')
 
 linear_model<-lm(Extent ~ Trend + Year + Month, data = joined_df)
 summary(linear_model)
+linear_model_categorical<-lm(Extent ~ Trend + Year + as.factor(Month), data = joined_df)
+summary(linear_model)
+
 
 # Second approach: machine learning techniques (knn and random forest)
 
@@ -37,8 +40,13 @@ training_set <- modeling_df[ trainIndex, ] # Select rows with generated indices
 View(training_set)
 test_set <- modeling_df[ -trainIndex, ]    # Remove rows with generated indices
 
-knn_model<- train(Extent ~ Trend + Year + Month, data = training_set, method = "knn")
-rf_model<- train(Extent ~ Trend + Year + Month, data = training_set, method = "cforest")
+# Grid for the hyperparameter tunning
+rf_grid <- expand.grid(mtry=c(3,6,9,12,15))
+knn_grid <- expand.grid(k=c(3,4,5,6,7))
+knn_model<- train(Extent ~ Trend + Year + Month, data = training_set, 
+                  method = "knn", trControl=trainControl(method = "cv", number=3), tuneGrid=knn_grid)
+rf_model<- train(Extent ~ Trend + Year + as.factor(Month), data = training_set, 
+                 method = "cforest", trControl=trainControl(method = "cv", number=3), tuneGrid=rf_grid)
 plot(knn_model)
 
 # Compute statistics on the target variable
