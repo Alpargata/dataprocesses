@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(plyr)
 library(ggplot2)
 library(dplyr)
 library(readr)
@@ -20,7 +21,6 @@ library(Hmisc)
 library(tidyr)
 library(rworldmap)
 library(rworldxtra)
-library(plyr)
 ```
 
 This is our final projct for the subject Data Processes. The topic we chose is **Climate Change**.  
@@ -70,9 +70,6 @@ co2data <- subset( co2data, select = -Decimal.Date ) #removing redondant informa
 outlier_values <- boxplot.stats(co2data$Average)$out
 
 co2data <- co2data %>% 
-  rename(
-    Days = Number.of.Days  #rename the variable to increase readability 
-  )%>% 
   filter(Average != '-99.99') 
 #variables correlation and feature engineering 
 co2data.cor = cor(x = co2data$Average , y = co2data$Trend) # To deternine if 2 coloumns describe the same event
