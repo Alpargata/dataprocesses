@@ -24,7 +24,7 @@ joined_df<-inner_join(ice_data, co2_data, by='Date')
 linear_model<-lm(Extent ~ Trend + Year + Month, data = joined_df)
 summary(linear_model)
 linear_model_categorical<-lm(Extent ~ Trend + Year + as.factor(Month), data = joined_df)
-summary(linear_model)
+summary(linear_model_categorical)
 
 
 # Second approach: machine learning techniques (knn and random forest)
@@ -37,7 +37,6 @@ trainIndex <- createDataPartition(modeling_df$Extent,
 )
 # Subset your data into training and testing set
 training_set <- modeling_df[ trainIndex, ] # Select rows with generated indices
-View(training_set)
 test_set <- modeling_df[ -trainIndex, ]    # Remove rows with generated indices
 
 # Grid for the hyperparameter tunning
@@ -47,7 +46,6 @@ knn_model<- train(Extent ~ Trend + Year + Month, data = training_set,
                   method = "knn", trControl=trainControl(method = "cv", number=3), tuneGrid=knn_grid)
 rf_model<- train(Extent ~ Trend + Year + as.factor(Month), data = training_set, 
                  method = "cforest", trControl=trainControl(method = "cv", number=3), tuneGrid=rf_grid)
-plot(knn_model)
 
 # Compute statistics on the target variable
 summary(modeling_df$Extent)
@@ -60,3 +58,4 @@ print(paste0('RMSE of prediction with knn model in test dataset: ', RMSE(predict
 # Compute the prediction error RMSE
 print(paste0('RMSE of prediction with random forest model in training dataset: ', RMSE(predict(rf_model, training_set), training_set$Extent)))
 print(paste0('RMSE of prediction with random forest model in test dataset: ', RMSE(predict(rf_model, test_set), test_set$Extent)))
+
