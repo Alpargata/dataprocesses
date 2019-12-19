@@ -16,9 +16,6 @@ summary(data)
 head(data)
 str(data)
 
-plot(data$Average.Co2.amount-data$Trend.for.Co2.amount)
-
-ggcorr(data)
 # Ok so here we can visualize that the correlation: There is no strong correlation between the Co2 trend and 
 # Ice surface, but that does not mean the correlation does not exist!
 # For this purpose, lets dive on the relations:
@@ -42,9 +39,11 @@ ggplot(data,aes(x = data$SouthIceAverageExtent, y = data$Trend.for.Co2.amount)) 
 
 # We will explore more in depth relations between north hemisphere and co2
 
+ggcorr(data)
 r=cov(data[,c(2,6)]) # We have here the covariance matrix between North and CO2.
 rcor=rcorr(as.matrix(data[,c(2,6)])) # Here the correlation matrix
 corrplot(rcor$r) # here we can see that there exists a negative relation between co2 and Ice surface
+
 
 pcor(data[,-1]) # We apply the pearson partial correlation to see the isolated effect between those two,
 # without taking into account the other variables
