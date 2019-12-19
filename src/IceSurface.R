@@ -4,7 +4,8 @@ library(car)
 library(FactoMineR)
 
 data<-read.csv(
-  "https://raw.githubusercontent.com/Alpargata/dataprocesses/master/data/seaice.csv",
+  #"https://raw.githubusercontent.com/Alpargata/dataprocesses/master/data/seaice.csv",
+  file="../data/seaice.csv",
   header=TRUE)
 summary(data)
 head(data)

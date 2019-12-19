@@ -5,7 +5,8 @@ library(FactoMineR)
 library(RiverLoad)
 # First we will preprocess the CO2 dataset
 co2data<-read.csv(
-  "https://raw.githubusercontent.com/Alpargata/dataprocesses/master/data/co2.csv",
+  # "https://raw.githubusercontent.com/Alpargata/dataprocesses/master/data/co2.csv",
+  file = "../data/co2.csv",
   header=TRUE, na.strings = TRUE , as.is = TRUE)
 summary(co2data)
 head(co2data)
@@ -33,7 +34,8 @@ co2data$Date <- as.Date(co2data$Date)
 
 # Secondly we will preprocess all the seaice data
 seaiceData<-read.csv(
-  "https://raw.githubusercontent.com/Alpargata/dataprocesses/master/data/seaice.csv",
+  #"https://raw.githubusercontent.com/Alpargata/dataprocesses/master/data/seaice.csv",
+  file="../data/seaice.csv",
   header=TRUE)
 summary(data)
 head(data)

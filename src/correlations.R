@@ -9,7 +9,8 @@ library(corrplot)
 
 
 data<-read.csv(
-  "https://raw.githubusercontent.com/Alpargata/dataprocesses/master/data/MergedDataset.csv",
+  #"https://raw.githubusercontent.com/Alpargata/dataprocesses/master/data/MergedDataset.csv",
+  file="../data/MergedDataset.csv",
   header=TRUE)
 summary(data)
 head(data)
