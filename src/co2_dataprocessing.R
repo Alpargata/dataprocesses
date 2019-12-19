@@ -35,19 +35,20 @@ co2data_year <-  co2data %>%
                   summarise(Trend = median(Trend))
 
 summary(co2data_year)
-plot(co2data_year$Year, y = co2data_year$Trend)
+trend<- plot(co2data_year$Year, y = co2data_year$Trend)
 
 co2data_year$Year = as.Date(co2data_year$Year, format("%Y"))
 
 #detecting the worst year by using dplyr package functions
-worst_year <-co2data %>% 
+worst_year <-co2data_year %>% 
   filter(Trend == max(Trend))  %>% 
-  select(Date)
+  select(Year)
+
 
 # Plotting 
 yearly_plot <- ggplot(data = co2data_year, aes(x = Year, y = Trend) )+
   geom_line(color = "#00AFBB", size = 1)+
-  ylab("CO2 Level")+
+  ylab("CO2 Level (Parts/million)")+
   ggtitle("CO2 mean by Year") +
   theme(plot.title = element_text(hjust = 0.5))
 
