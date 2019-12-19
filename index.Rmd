@@ -1,0 +1,357 @@
+---
+title: "FinalProject - Group7"
+author: "Alma Parias, Rafael Muñoz, Beatrice Olivari, Omar Echbiki and Miguel Pérez "
+date: "19/12/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(corrplot)
+library(car)
+library(FactoMineR)
+library(RiverLoad)
+library(GGally)
+library(plotly)
+library(Hmisc)
+library(tidyr)
+library(rworldmap)
+library(rworldxtra)
+library(plyr)
+```
+
+This is our final projct for the subject Data Processes. The topic we chose is **Climate Change**.  
+
+## Abstract
+Climate change and its impact on the earth have been a hot issue in the last years. Many scientific researches have been carried out in order to both analyse the phenomenon and try to find a realistic solution. Recently, after becoming aware that it is now to late to find a complete solution, the scientists have been focusing more on predicting the speed of the process in order to be prepared to face the problems. Our aim in this project is to try to predict how the rising of co2 in the last years will affect the state of glaciers in the next months. In order to make this prediction we investigated three different datasets and we processed the data in them with the goal to merge them together in a unique dataset to use for our analysis. Afterwards, we performed some machine learning techniques to make our prediction.
+
+### Introduction
+We would like to answer this question because Climate Change is a really important issue we have now. The poles are melting, the sea level is growing and the temperature is rising. All of these problems can change the world and the way we live. We think people must be aware of this and try to slow the process. 
+
+### Related Work
+[Participants in actions against climate change](https://climateaction.unfccc.int/) In this link can be found a map, where you can select a country and see the initiatives. This is done by the United Nations.   
+
+[World Climate Summit Madrid](https://www.worldclimatesummit.org/) This year the world Climate Summit has been held in Madrid. Some of the topics were e-mobility, smart cities, sustinable forest and responsible resource extraction. This is a way to concienciate people and think new regulations and ideas.
+
+[Study about the need of more studies to show that Climate Chage is real](https://www.nature.com/articles/s41558-018-0360-1) This study says that some people doesn't believe in empirical data and that more studies that shows the effects are needed.
+
+[Lichens are a biosensor of climate change](https://www.mdpi.com/1424-2818/11/3/42) The lichens in Antarctica are a natural biosensor to measure the evolution of climate change. 
+
+[Food distribution related with climate change](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecs2.2645) Trophic interactions within food webs affect species distributions, coexistence, and provision of ecosystem services but can be strongly impacted by climatic changes.
+
+ For further reading, here are [Some articles about how climate change is affecting the nature](https://www.nature.com/nclimate/research) Some examples about how climate change is affecting the nature and sme examples about why the climate is getting worse. 
+
+## Exploratory Data Analysis
+In this part the three datasets that we are going to use are going to be presented.  
+
+### CO2 emissions
+This dataset describes Trends in Atmospheric Carbon Dioxide and it contains data from **1958** to  **2018**. [Source](https://datahub.io/anuveyatsu/co2-ppm):
+The raw dataset has the following features:
+
+- **Date:** the day of the recording in *yy-mm-YYYY* format
+- **Average [Parts per million]:** The monthly mean CO2 mole fraction determined from daily averages. If there are missing days concentrated either early or late in the month, the monthly mean is corrected to the middle of the month using the average seasonal cycle. Missing months are denoted by _-99.99_.
+- **Interpolated [Parts per million]: ** Values from the average column and interpolated values where data are missing. Interpolated values are computed in two steps. First, we compute for each month the average seasonal cycle in a 7-year window around each monthly value. In this way the seasonal cycle is allowed to change slowly over time. We then determine the trend value for each month by removing the seasonal cycle; this result is shown in the trend column. Trend values are linearly interpolated for missing months. The interpolated monthly mean is then the sum of the average seasonal cycle value and the trend value for the missing month.
+- **Trend [Parts per million]:** Seasonally corrected.
+- **Number.of.Days:** Number of days for the recording: **-1** denotes no data for number of daily averages in the month.
+
+```{r echo=F}
+# Reading the data from file
+co2data<-read.csv("data/co2.csv", header=TRUE, na.strings = TRUE )
+
+#Creating a column for Year to preserve Date
+co2data$Year = substr(co2data$Date, start = 0, stop = 4)
+co2data$Year = factor(co2data$Year)
+co2data$Date =  as.Date(co2data$Date)
+co2data <- subset( co2data, select = -Decimal.Date ) #removing redondant information about date since there are only 7 observation we can remove them as they don't incide on the dataset 
+
+outlier_values <- boxplot.stats(co2data$Average)$out
+
+co2data <- co2data %>% 
+  rename(
+    Days = Number.of.Days  #rename the variable to increase readability 
+  )%>% 
+  filter(Average != '-99.99') 
+#variables correlation and feature engineering 
+co2data.cor = cor(x = co2data$Average , y = co2data$Trend) # To deternine if 2 coloumns describe the same event
+co2data.cor = cor(x = co2data$Average , y = co2data$Interpolated)
+```
+
+```
+{r CO2 data processing, include=FALSE}
+```
+```{r echo=F}
+summary(co2data)
+```
+## Data Preparation 
+Before proceeding to use the dataset we have to do some preliminary operation:
+
+1. Removing non useful features such as _Decimal.Date_ since it is a repetition of Date
+
+2. Converting the Date fields to R Date to be used in the plot, since ggplot2 treats it as a time series and handled differently
+
+3. Removing the outliers, since in Average there are a few observations that have a value of **-99.99** this changes radically the scale of the plot
+```{r }
+outlier_values <- boxplot.stats(co2data$Average)$out
+outlier_values
+```
+So we simply removed them, since those observation are only 7, and compared to the size of the dataset we can remove those specific observations.
+
+We also wanted to know which was (in terms of climate change) the 'worst year' for our planet? (more polluted year, higher temperature...).
+
+Premise: By worst year here we mean that we are looking for the highest CO2 level in the data 
+_We expect that since the trend of the CO2 level is increasing year by year that the year with the highest CO2 PPM will be the last recorded one_
+To answer this question it is necessary that we do more Data Manipulation using R package dplyr.
+In order to answer the question we need to retrieve the data for the year to do so we did the following steps:
+
+1. Create a new Data frame called _co2data_year_  using the Date field and taking only the Year
+2. Transforming it into a Date field
+3. Group by Year 
+4. Setting the variable Trend to be the Mean for that year using the summarize function from dplyr
+
+
+
+After doing so we get the following data frame:
+
+```{r}
+co2data_year <-  co2data %>% 
+  group_by(Year) %>%
+  summarise(Trend = median(Trend))
+
+head(co2data_year)
+
+```
+
+Now we can plot the results.
+
+To answer this question it is enough to run this simple query using again the dplyr package.
+This command will return one value which is the date of the highest CO2 level
+
+```{r}
+worst_year <-co2data %>% 
+  filter(Trend == max(Trend))  %>% 
+  select(Date)
+worst_year
+
+```
+
+
+
+Let's see a summary of the data: 
+
+
+
+```{r echo=F}
+co2data_year <-  co2data %>% 
+  group_by(Year) %>%
+  summarise(Trend = median(Trend))
+
+co2data_year$Year = as.Date(co2data_year$Year, format("%Y"))
+
+ggplot(data = co2data_year, aes(x = Year, y = Trend) )+
+  geom_line(color = "#00AFBB", size = 1)+
+  ylab("CO2 Level")+
+  ggtitle("CO2 mean by Year") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+### International comprehensive Ocean-Atmosphere (ICOADS-NOAA)
+Dataset description
+https://rda.ucar.edu/datasets/ds548.0/
+
+The International Comprehensive Ocean-Atmosphere Data Set (ICOADS) is a global ocean marine meteorological and surface ocean dataset. It contains data measurements and visual observation collected by ships, moored and drifting buoys, coastal stations, and other marine and near-surface ocean platforms. Each marine report contains individual observations of meteorological and oceanographic variables, such as sea surface and air temperatures, wind, pressure, humidity, and cloudiness. The coverage is global and sampling density varies depending on date and geographic position relative to shipping routes and ocean observing systems. The dataset (which contains the observations from the year 2010) consists of 76 columns and 100,000 rows, but many of the columns present a lot of missing values (in many cases more than a half of the observations), so that we had to drop many of them. 
+
+#### Data processing
+Taking into account the general topic of interest, we decided to consider only the features regarding temperature, pressure of water, weather, clouds and waves. However, after analysing the number of NA values into the columns, we realized that most of them weren’t useful because of the high percentage of missing values (sometimes more than a half) so we deleted them. After doing this process, we deleted the remaining NA values, by getting rid of the rows containing them. Eventually, the final dataset was composed by 9 columns and 69,050 rows.
+
+```{r echo=F}
+ocean <- read.csv('data/icoads_noaa.csv', header = TRUE)
+
+
+# Choosing the important features
+
+# It could be interesting to analyse also present weather, waves and clouds but more than
+# a half of their values are NA, so we decided to drop them. Moreover we drop the year since its the 
+# same (2010) for every observation. We don't take the column country_code since most of
+# the cells are empty.
+newCols <- c("month", "day", "latitude", "longitude", "air_temperature", "sea_surface_temp", "sea_level_pressure")
+newOcean <- ocean[newCols]
+
+# Features engineering and Pearson correlation
+
+# Omitting all the rows with NA values
+newOcean <- na.omit(newOcean, seq_along(sea_surface_temp, air_temperature, sea_level_pressure))
+
+# Correlation matrix to see the relationship between the variables
+newOcean.cor = cor(newOcean)
+```
+
+To understand the relationship between the variables, we proceeded with the study of the correlations between the variables. By plotting the correlation matrix, we could easily see that, as expected, the variables sea_level_temp and air_temperature were highly correlated. Another observation which could be seen is that there is a negative correlation between sea_surface_temp and latitude. To investigate more about this, plotted sea_surface_temp vs latitude and we could observ a pattern which, as expected, showed that temperature is low in the poles and increases the closer we get to the equator.
+Afterwards, in order to make the manipulation easier, we aggregated month and day into the variable Date. Moreover, we created a new variable, called Hemisphere, by binning the latitude.
+
+#### Graphs
+1.  Firstly, we choose to represent the values of the sea_level_pressure in a world map. Lower values of pressure are represented by blue colours, while higher values are represented by yellow and red colours.
+```{r echo=F}
+plot(newOcean$latitude, newOcean$sea_surface_temp)
+
+# we aggregate the date to easen the manipulation
+newOcean$Date <- with(newOcean, sprintf("%d-%02d", month, day))
+
+#Creating variable Hemisphere by binning the latitude
+newOcean$Hemisphere <- cut(newOcean$latitude, c(-90,0, 90))
+newOcean$Hemisphere <- revalue(newOcean$Hemisphere, c("(-90,0]"="South"))
+newOcean$Hemisphere <- revalue(newOcean$Hemisphere, c("(0,90]"="North"))
+```
+
+2.  In order to make a comparison between the evolution of temperature during the year in the northern and southern pole, we plotted two bar charts.
+```{r echo=F}
+# Plotting sea_level_pressure
+layout(matrix(1:2,ncol=2), width = c(2,1),height = c(1,1))
+
+newmap <- getMap(resolution = "high")
+pal = colorRampPalette(c("blue","lightblue", "yellow", "red"))
+newOcean$order = findInterval(newOcean$sea_level_pressure, sort(newOcean$sea_level_pressure))
+plot(newmap, xlim = c(-20, 59), ylim = c(35, 71), asp = 1, col = "antiquewhite1")
+points(newOcean$longitude, newOcean$latitude, col=pal(nrow(newOcean))[newOcean$order], pch = 16, cex = .6)
+
+colfunc <- colorRampPalette(c("red","yellow", "lightblue", "blue"))
+legend_image <- as.raster(matrix(colfunc(20), ncol=1))
+plot(c(0,2),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = 'Pressure in hPa')
+text(x=0.8, y = seq(0,1,l=2), labels = seq(955.5,1046.6,l=2))
+rasterImage(legend_image, 0, 0, 0.5,0.5)
+
+#Avarage temperature by months for the different hemispheres
+ocean_south <- newOcean %>% subset(Hemisphere == "South")
+ocean_south <- aggregate(ocean_south,
+                         by = list(ocean_south$month),
+                         FUN = mean)
+cols <- c("month", "air_temperature", "sea_surface_temp", "sea_level_pressure")
+ocean_south <- ocean_south[cols]
+
+ocean_north <- newOcean %>% subset(Hemisphere == "North")
+ocean_north <- aggregate(ocean_north,
+                         by = list(ocean_north$month),
+                         FUN = mean)
+ocean_north <- ocean_north[cols]
+
+ggplot(data=ocean_north, aes(x=month, y=air_temperature,2)) +
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))+
+  theme(axis.text.x = element_text(size=10, angle=45))+
+  ggtitle("Sea level pressure by month in the Northern Emisphere")+
+  geom_bar(stat="identity", fill="steelblue")+
+  theme_minimal()
+```
+```{r echo=F}
+
+ggplot(data=ocean_south, aes(x=month, y=air_temperature,2)) +
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))+
+  theme(axis.text.x = element_text(size=10, angle=45))+
+  ggtitle("Sea level pressure by month in the Southern Emisphere")+
+  geom_bar(stat="identity", fill="steelblue")+
+  theme_minimal()
+
+```
+
+### The National Snow and Ice Data Center
+The National Snow and Ice Data Center (NSIDC) supports research into our world’s frozen realms: the snow, ice, glaciers, frozen ground, and climate interactions that make up Earth’s cryosphere. NSIDC manages and distributes scientific data, creates tools for data access, supports data users, performs scientific research, and educates the public about the cryosphere.
+
+#### Content
+The dataset provides the total extent for each day for the entire time period (1978-2015). There are seven variables: 
+
+ - Year
+ - Month
+ - Day
+ - Extent: unit is 10^6 sq km
+ - Missing: unit is 10^6 sq km
+ - Source: Source data product web site: http://nsidc.org/data/nsidc-0051.html
+ - Hemisphere: North or South
+ 
+ 
+The main problem with this dataset it that measures are taken every 2 days, while the co2 are monthly. 
+
+```{r, echo=F}
+data<-read.csv('data/seaice.csv',  header=TRUE)
+summary(data)
+```
+
+For this reason, we had to:
+ - Take a look at the possible exising cycles of ice extent during each month
+ - See if we can compress all that information in a few features (like mean and variance or jitter or some statistical feature). 
+ 
+```{r echo=F}
+# Data Preprocess
+df <- subset( data, select = -Source.Data ) #We remove the link provided, since its
+#not useful for our purpose at least in first place
+df$Date=as.Date(paste(sep="-",df$Year,df$Month,df$Day)) # we aggregate the date to easen the
+#manipulation
+ag<-aggregate(df['Extent'], by=df['Date'], sum)
+names(ag)[names(ag)=="Extent"]<-"Global Extent"
+rs<-aggregate(x = df["Extent"], by=df["Date"], 
+              FUN = function(a){
+                y<-a[1]-a[2];
+              })
+names(rs)[names(rs)=="Extent"]<-"North-South Difference"
+
+df <- merge(df,ag,by="Date")
+df <- merge(df,rs,by="Date")
+
+north = df[df$hemisphere == "north",]
+south = df[df$hemisphere == "south",]
+# Statistical exploration in data
+
+lm1 = lm(data=df, Extent~ . )
+anova(lm1)
+
+```
+ 
+Thankfully, we saw almost no variation within the days, as was seen on ```IceSurface.R```, the ice extent remains almost constant for each day of the month. This is reasonable, since it has no sense having a sensible decrease in ice extent in a certain days, since it is a rather long-termed effect.
+
+```{r echo=F, warning=F}
+anAvg<-aggregate(df['Global Extent'], by=df['Year'], sum)
+anAvg$`Global Average`<-anAvg$`Global Extent`/table(df$Year)
+
+ggplot(anAvg,aes(x =Year, y =`Global Average` ))+
+  geom_point() + 
+  geom_smooth(method='lm', formula= y~x)
+```
+
+The other thing we did is we provided a different columns for each one of the hemisphere, instead of having 2 rows for each observation:  one for northern hemisphere and other for the southern, and added two extra columns: global extent and difference between north and south. This can be done, since all measures are an absolute value (10^6 km squared) and they are additive.
+
+ 
+## Methods
+To be able to create a model, first we need to have one dataset. In this case, we are only going to use **The  National Snow and Ice Data Center**  and **CO2**. 
+
+We merged all the data via month, and calculated the mean for each month. After that, we proceeded to merge co2 dataset and ice extent dataset. 
+This was an easy task after rearranging the times, but we were careful in the merging, so missing values are completely eliminated from both datasets. 
+
+After doing that, we explored the data. We could observe that ice variation in the South pole was almost insignificant, since the regression line was straight completely and variation remained the same. The main concern was for the north pole extent, which is greatly damaged by the co2. We made a graph representing it that can be seen below.
+
+```{r echo=F}
+data<-read.csv("data/MergedDataset.csv",  header=TRUE)
+
+ggcorr(data)
+r=cov(data[,c(2,6)]) # We have here the covariance matrix between North and CO2.
+rcor=rcorr(as.matrix(data[,c(2,6)])) # Here the correlation matrix
+corrplot(rcor$r) # here we can see that there exists a negative relation between co2 and Ice surface
+
+```
+
+### Strength of relationships
+
+### Predictions
+
+## Results
+
+### Strength of relationships
+
+### Predictions
+
+## Discussion and future work  
+The ICOADS dataset is also temporal, but it is huge. The dataset is in GoogleBigQueries, so we can't download complete. As future work it will be interesting using RSpark and use the whole dataset to try to improve the predictions with the data af the oceans. 
+
+```{r echo=F}
+```
