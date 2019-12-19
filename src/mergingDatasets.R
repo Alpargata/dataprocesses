@@ -16,7 +16,7 @@ co2data <- co2data %>%
   filter(Date >= bottomDate & Date <= topDate) #removing all data out of our borderlines
 
 # Data Preprocessing and Cleaning
-co2data <- select(co2data,1,3,5) 
+co2data <- select(co2data,1,5) 
 #Removing the Decimal.Date since we already have a Date coloum and it is redundant. Number of days are of no apparent use
 
 # Since the earliest date from our dataset its 1978, we will start our dataset at Nov 1978 
@@ -27,8 +27,7 @@ topDate  <-as.Date("2018-09-30")
 #column renaming:
 co2data <- co2data %>% 
   rename(
-    "Average Co2 amount"= Average , # mole fraction determined from daily averages
-    "Trend for Co2 amount" = Trend
+    "Trend for Co2 amount" = Trend # mole fraction determined from daily averages
   )
 co2data$Date <- as.Date(co2data$Date)
 
