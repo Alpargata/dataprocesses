@@ -4,7 +4,8 @@ library(car)
 library(FactoMineR)
 
 data<-read.csv(
-  "https://raw.githubusercontent.com/Alpargata/dataprocesses/master/data/seaice.csv",
+  #"https://raw.githubusercontent.com/Alpargata/dataprocesses/master/data/seaice.csv",
+  file="../data/seaice.csv",
   header=TRUE)
 summary(data)
 head(data)
@@ -85,7 +86,9 @@ anAvg<-aggregate(df['Global Extent'], by=df['Year'], sum)
 anAvg$`Global Average`<-anAvg$`Global Extent`/table(df$Year)
 
 ggplot(anAvg,aes(x =Year, y =`Global Average` ))+
-  geom_point()
+  geom_point() + 
+  geom_smooth(method='lm', formula= y~x)
+
 
 Navg<-aggregate(north$Extent,by=north['Year'],sum)
 northYearAverage<-Navg$x/table(north$Year)
