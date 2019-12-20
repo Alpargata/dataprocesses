@@ -387,6 +387,7 @@ corrplot(rcor$r) # here we can see that there exists a negative relation between
 ```
 This plots show us an existing and negative correlation between the North hemisphere ice extension and CO2.
 This means that if CO2 concentrations increase, north hemisphere ice will decrease. Correlation and partial correlation were tested.
+<<<<<<< HEAD
 Correlation between CO2 and North Ice Extension was -0.21. This may lead to confounding conclusions, since the value is very low (in the 0 closeness). Thus, we also performed a Pearson partial correlation and obtained that the partial correlation was -0.447, so if all other values are controlled to not interfere in the correlation between these 2 variables. So in this case, the relationship is higher, meaining that even the relationship between the 2 variables is not linear, it exist a negative relationship between both of them.
 
 ```{r}
@@ -404,7 +405,29 @@ scatterplot <- data %>%
 ggplotly(scatterplot) %>% 
   add_lines(x = ~data$Trend.for.Co2.amount, y = fitted(fit))
 ```
+=======
 
+Correlation between CO2 and North Ice Extension was -0.21. This may lead to confounding conclusions, since the value is very low (in the 0 closeness). Thus, we also performed a Pearson partial correlation and obtained that the partial correlation was -0.447, so if all other values are controlled to not interfere in the correlation between these 2 variables. So in this case, the relationship is higher, meaining that even the relationship between the 2 variables is not linear, it exist a negative relationship between both of them
+>>>>>>> 0f7d2390f64a749305f8657cc66229a69f3929a3
+
+```{r echo=F}
+data<-read.csv("data/MergedDataset.csv",  header=TRUE)
+
+fit <- lm(NorthIceAverageExtent ~ Trend.for.Co2.amount ,data = data)
+
+scatterplot <- data %>%
+  ggplot(aes(x = Trend.for.Co2.amount, y = NorthIceAverageExtent, color = Date)) + 
+  ggtitle("Correlation between North Hemisphere Ice surface and CO2 concentration")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  geom_point() + 
+  labs(x = "Co2 Amounts (mole fraction)", 
+       y = "Ice extent (10^6 km)") +
+  theme(legend.position = "none")
+
+ggplotly(scatterplot) %>% 
+  add_lines(x = ~data$Trend.for.Co2.amount, y = fitted(fit))
+ 
+```
 ### Predictions
 We want to predict the Extent in sea ice based on the amount of CO2 (Trend) present in the atmosphere. To do that, we need to merge the information from two datasets: co2 and seaice.
 
