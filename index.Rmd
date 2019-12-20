@@ -327,6 +327,11 @@ This was an easy task after rearranging the times, but we were careful in the me
 
 After doing that, we explored the data. We could observe that ice variation in the South pole was almost insignificant, since the regression line was straight completely and variation remained the same. The main concern was for the north pole extent, which is greatly damaged by the co2. We made a graph representing it that can be seen below.
 
+
+### Strength of relationships
+
+The relationships between Co2 and Ice extension were tested.
+
 ```{r echo=F}
 data<-read.csv("data/MergedDataset.csv",  header=TRUE)
 
@@ -336,16 +341,13 @@ rcor=rcorr(as.matrix(data[,c(2,6)])) # Here the correlation matrix
 corrplot(rcor$r) # here we can see that there exists a negative relation between co2 and Ice surface
 
 ```
-
-### Strength of relationships
+This plots show us an existing and negative correlation between the North hemisphere ice extension and CO2.
+This means that if CO2 concentrations increase, north hemisphere ice will decrease. Correlation and partial correlation were tested.
+Correlation between CO2 and North Ice Extension was -0.21. This may lead to confounding conclusions, since the value is very low (in the 0 closeness). Thus, we also performed a Pearson partial correlation and obtained that the partial correlation was -0.447, so if all other values are controlled to not interfere in the correlation between these 2 variables. So in this case, the relationship is higher, meaining that even the relationship between the 2 variables is not linear, it exist a negative relationship between both of them
 
 ### Predictions
 
 ## Results
-
-### Strength of relationships
-
-### Predictions
 
 ## Discussion and future work  
 The ICOADS dataset is also temporal, but it is huge. The dataset is in GoogleBigQueries, so we can't download complete. As future work it will be interesting using RSpark and use the whole dataset to try to improve the predictions with the data af the oceans. 
