@@ -414,7 +414,7 @@ We want to predict the Extent in sea ice based on the amount of CO2 (Trend) pres
 We are going to join them by the Date, but before doing it, we need to clean and select the columns (make sure that there is no null values), aggregate the information by year and month in seaice (because in the co2 dataset the data is aggregated by month) and create a new Date variable from these. 
 Then, we perform an inner join to make sure that we will not have missing values. 
 
-```{r}
+```{r echo=F}
 #Load co2_data, select colums and format Date
 co2_data<-read.csv("../data/co2.csv",header=TRUE, na.strings = TRUE , as.is = TRUE)
 co2_data <- co2_data %>% select(-Decimal.Date) %>% select(-Number.of.Days)
@@ -450,7 +450,7 @@ summary(linear_model_categorical)
 
 After that, it is time to start applying machine learning algorithms using the caret package. We have chosen two: Knn and random forest. The first one is simple and powerful, and the second one is easy to understand and is good at handling both categorical and numerical data. 
 
-```{r}
+```{r echo=F}
 modeling_df<-joined_df %>% select(-Date) %>% select(-Average) %>% select(-Interpolated)
 trainIndex <- createDataPartition(modeling_df$Extent,
                                   p = .8,       # Proportion of data used for training
@@ -461,7 +461,7 @@ trainIndex <- createDataPartition(modeling_df$Extent,
 
 After randomly splitting the dataset into training (80%) and testing (20%), Knn is faster at training and achieves an RMSE around 0.6. 
 
-```{r}
+```{r echo=F }
 # Subset your data into training and testing set
 training_set <- modeling_df[ trainIndex, ] # Select rows with generated indices
 test_set <- modeling_df[ -trainIndex, ]    # Remove rows with generated indices
@@ -480,7 +480,7 @@ Comparing to the standard deviation of the target variable (1.43) is not bad, bu
 We decided to use a **random forest** and include the variable ```Month``` as categorical. 
 It takes longer to train, but we get an RMSE around 0.34, which is much better. Training is performed with cross-validation technique (k=3) and parameter tuning is done with grid search.
 
-```{r}
+```{r echo=F}
 # Compute statistics on the target variable
 summary(modeling_df$Extent)
 sd(modeling_df$Extent)
@@ -499,10 +499,30 @@ We can conclude, after the linear model and the random forest, that we can find 
 
 
 
+We also applied a time series analysis in order to obtain a forecast for future evolutions to ice extent and co2 emissions.
+
+We used an ARIMA model in order to achieve that, and all the training process for those models is in the code of the file arimamodel.R
+
+For the CO2, we obtained the following graph:
+
+```{r echo=F}
+ArimaCO2forecast <- Arima(ts1[,6],order=c(1,1,3),seasonal=list(order=c(1,1,2), period=12))
+fc3=forecast(ArimaCO2forecast,h=84)
+plot(fc3, xlab="Years trascurred since 1978" ,ylab="molar concentration of CO2")
+
+```
+As we can see, there is a linear prediction in the co2 increase for the following years. This is problematic, but since 1978 all the CO2 concentrations have been linearily increasing, so this is a plausible and not desirable future. Lets see what happens for the Ice extention on the north hemisphere:
+
+```{r echo=F}
+ArimaIceforecast <- Arima(ts1[,2],order=c(1,1,3),seasonal=list(order=c(1,1,2), period=12))
+fc1=forecast(ArimaIceforecast,h=84)
+plot(fc1, xlab="Years trascurred since 1978" ,ylab="Ice extention in 10^6 km squared") #We can see that the trend for the next years is to decrease constantly
+```
+So as we can see, the loops will still ocurr, but a general decay trend is still hapening, so the ice will still melting in the northern part of the earth. Not a very promising future either!
 ## Results
 
 ## Discussion and future work  
-Another interesting approach would have been to use time series analysis. There are interesting aspects in the data that could be understan from the perspective of the time: seasonality, trend, etc. 
+There are interesting aspects in the data that could be understan from the perspective of the time: seasonality, trend, etc. 
 We would have also liked to include data from the ICOADS dataset(oceans) but, unfortunately, we only had data from 2010. 
 The ICOADS dataset is also temporal, but it is huge. The dataset is in GoogleBigQueries, so we can't download complete. As future work it will be interesting using RSpark and use the whole dataset to try to improve the predictions with the data af the oceans. 
 
