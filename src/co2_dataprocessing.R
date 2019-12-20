@@ -10,7 +10,7 @@ co2data$Year = factor(co2data$Year)
 co2data$Date =  as.Date(co2data$Date)
 co2data <- subset( co2data, select = -Decimal.Date ) #removing redondant information about date
 
-scatter.smooth(x = co2data$Date, y = co2data$Average) # as we cab see the outliers set at -99.99 and since there are only 7 observation we can remove them as they don't incide on the dataset 
+scatter.smooth(x = co2data$Date, y = co2data$Average ,  xlab = "Date", ylab = "Average CO2 (parts/million)" ) # as we cab see the outliers set at -99.99 and since there are only 7 observation we can remove them as they don't incide on the dataset 
 
 outlier_values <- boxplot.stats(co2data$Average)$out
 
@@ -45,11 +45,11 @@ worst_year <-co2data_year %>%
 
 
 # Plotting 
-yearly_plot <- ggplot(data = co2data_year, aes(x = Year, y = Trend) )+
+yearly_plot <-  ggplot(data = co2data_year, aes(x = Year, y = Trend) )+
   geom_line(color = "#00AFBB", size = 1)+
   ylab("CO2 Level (Parts/million)")+
   ggtitle("CO2 mean by Year") +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5)) 
 
 # as we can clearly see the year with the highest levels of CO2 is the last recorded year whick is 2018
 #this trend is clear in all previous years where the highest levels of C02 are beaten the following year and so on, meaning that it is only getting worse each year

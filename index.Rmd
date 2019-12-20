@@ -23,12 +23,15 @@ library(rworldxtra)
 library(caret)
 library(lattice)
 library(forecast)
+library(party)
+
 ```
 
 This is our final projct for the subject Data Processes. The topic we chose is **Climate Change**.  
+We chose this topic as it is a topic of paticular interest to all members of the group and we believe that we **must** do something about it, with the following study we hope to raise awarness of the problem by giving facts and data.
 
 ## Abstract
-Climate change and its impact on Earth have been a hot issue in the last years. Many scientific researches have been carried out in order to both analyse the phenomenon and try to find a realistic solution. Recently, after becoming aware that it is now to late to find a complete solution, the scientists have been focusing more on predicting the speed of the process in order to be prepared to face the problems. Our aim in this project is to try to predict how the rising of co2 in the last years will affect the state of glaciers in the next months. In order to make this prediction we investigated three different datasets and we processed the data in them with the goal to merge them together in a unique dataset to use for our analysis. Afterwards, we performed some machine learning techniques to make our prediction.
+Climate change and its impact on Earth have been a hot issue in the last years. Many scientific researches have been carried out in order to both analyse the phenomenon and try to find a realistic solution. Recently, after becoming aware that it is now to late to find a complete solution, the scientists have been focusing more on predicting the speed of the process in order to be prepared to face the problems. Our aim in this project is to try to predict how the rising of CO2 in the last years will affect the state of glaciers in the next months. In order to make this prediction we investigated three different datasets and we processed the data in them with the goal to merge them together in a unique dataset to use for our analysis. Afterwards, we performed some machine learning techniques to make our predictions.
 
 ### Introduction
 We would like to answer this question because Climate Change is a really important issue we have now. The poles are melting, the sea level is growing and the temperature is rising. All of these problems can change the world and the way we live. We think people must be aware of this and try to slow the process. 
@@ -61,25 +64,18 @@ The raw dataset has the following features:
 
 ```{r echo=F}
 # Reading the data from file
-co2data<-read.csv("data/co2.csv", header=TRUE, na.strings = TRUE )
+co2data<-read.csv("https://raw.githubusercontent.com/Alpargata/dataprocesses/master/data/co2.csv", header=TRUE, na.strings = TRUE )
 
 #Creating a column for Year to preserve Date
 co2data$Year = substr(co2data$Date, start = 0, stop = 4)
-co2data$Year = factor(co2data$Year)
+co2data$Year = factor(co2data$Year) # to be able to group them later
 co2data$Date =  as.Date(co2data$Date)
-co2data <- subset( co2data, select = -Decimal.Date ) #removing redondant information about date since there are only 7 observation we can remove them as they don't incide on the dataset 
+co2data <- subset( co2data, select = -Decimal.Date ) #removing redondant information about date 
 
-outlier_values <- boxplot.stats(co2data$Average)$out
-
-co2data <- co2data %>% 
-  filter(Average != '-99.99') 
-#variables correlation and feature engineering 
-co2data.cor = cor(x = co2data$Average , y = co2data$Trend) # To deternine if 2 coloumns describe the same event
-co2data.cor = cor(x = co2data$Average , y = co2data$Interpolated)
 ```
 
 ```
-{r CO2 data processing, include=FALSE}
+{summary(co2data)}
 ```
 ```{r echo=F}
 summary(co2data)
@@ -94,14 +90,45 @@ Before proceeding to use the dataset we have to do some preliminary operation:
 3. Removing the outliers, since in Average there are a few observations that have a value of **-99.99** this changes radically the scale of the plot
 ```{r }
 outlier_values <- boxplot.stats(co2data$Average)$out
+
 outlier_values
+
+
+co2data <- co2data %>% 
+  filter(Average != '-99.99')  
+
+
 ```
 So we simply removed them, since those observation are only 7, and compared to the size of the dataset we can remove those specific observations.
 
-We also wanted to know which was (in terms of climate change) the 'worst year' for our planet? (more polluted year, higher temperature...).
+## Variable correlation
+For choosing which variable among those we have available there are a few thing we need to keep in cosideration:
+
+- Does the different coloumns give different information about our phenomenon?
+- Are those variables correlated and if so to what degree?
+- Is it possible to use one feature only?
+
+To answer all of these question we had to do some indept analysys of the data and since we say that the data were very similiar in the three variables ( _Average, Interpolated and Trend_ ).
+We performed then some statical analysis on them to see if there's any correlation between those and which one to choose.
+Using the **corrplot** library we performed some simple correlation commands on the variables.
+
+```{r echo=T}
+cor(x = co2data$Average , y = co2data$Trend) 
+cor(x = co2data$Average , y = co2data$Interpolated)
+```
+
+
+As we can see the data is highly correlated with a value close to **1** and the other at  **0.97** it is safe to use only one of these.
+So we decided to use the Trend one as it also removes seasonality, since what we want to analyze does not depend on the seasonality of the data.
+
+## Question data preparation
+
+**Which was (in terms of climate change) the 'worst year' for our planet? (more polluted year, higher temperature...).***
 
 Premise: By worst year here we mean that we are looking for the highest CO2 level in the data 
+
 _We expect that since the trend of the CO2 level is increasing year by year that the year with the highest CO2 PPM will be the last recorded one_
+
 To answer this question it is necessary that we do more Data Manipulation using R package dplyr.
 In order to answer the question we need to retrieve the data for the year to do so we did the following steps:
 
@@ -114,7 +141,7 @@ In order to answer the question we need to retrieve the data for the year to do 
 
 After doing so we get the following data frame:
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 co2data_year <-  co2data %>% 
   group_by(Year) %>%
   summarise(Trend = median(Trend))
@@ -138,8 +165,7 @@ worst_year
 
 
 
-Let's see a summary of the data: 
-
+Let's see the plot of the yearly Mean of CO2 in the various years, as we can see the trend is increasing each year and it does not seem to be decreasing.
 
 
 ```{r echo=F}
@@ -151,7 +177,7 @@ co2data_year$Year = as.Date(co2data_year$Year, format("%Y"))
 
 ggplot(data = co2data_year, aes(x = Year, y = Trend) )+
   geom_line(color = "#00AFBB", size = 1)+
-  ylab("CO2 Level")+
+  ylab("CO2 Level (Parts/million)")+
   ggtitle("CO2 mean by Year") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
@@ -221,7 +247,7 @@ newOcean$Hemisphere <- revalue(newOcean$Hemisphere, c("(0,90]"="North"))
 
 2.  In order to make a comparison between the evolution of temperature during the year in the northern and southern pole, we plotted two bar charts.
 
-```{r echo=F}
+```{r echo=F , warning=FALSE}
 # Plotting sea_level_pressure
 layout(matrix(1:2,ncol=2), width = c(2,1),height = c(1,1))
 
@@ -258,7 +284,7 @@ ggplot(data=ocean_north, aes(x=month, y=air_temperature,2)) +
   geom_bar(stat="identity", fill="steelblue")+
   theme_minimal()
 ```
-```{r echo=F}
+```{r echo=F , warning=FALSE }
 
 ggplot(data=ocean_south, aes(x=month, y=air_temperature,2)) +
   scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))+
@@ -286,7 +312,7 @@ The dataset provides the total extent for each day for the entire time period (1
  
 The main problem with this dataset it that measures are taken every 2 days, while the co2 are monthly. 
 
-```{r, echo=F}
+```{r, echo=F , warning=FALSE}
 data<-read.csv('data/seaice.csv',  header=TRUE)
 summary(data)
 ```
@@ -295,7 +321,7 @@ For this reason, we had to:
  - Take a look at the possible exising cycles of ice extent during each month
  - See if we can compress all that information in a few features (like mean and variance or jitter or some statistical feature). 
  
-```{r echo=F}
+```{r echo=F , warning=FALSE}
 # Data Preprocess
 df <- subset( data, select = -Source.Data ) #We remove the link provided, since its
 #not useful for our purpose at least in first place
@@ -376,7 +402,7 @@ After doing that, we explored the data. We could observe that ice variation in t
 
 The relationships between Co2 and Ice extension were tested.
 
-```{r echo=F}
+```{r echo=F , warning=FALSE}
 data<-read.csv("data/MergedDataset.csv",  header=TRUE)
 
 ggcorr(data)
@@ -390,7 +416,7 @@ This means that if CO2 concentrations increase, north hemisphere ice will decrea
 
 Correlation between CO2 and North Ice Extension was -0.21. This may lead to confounding conclusions, since the value is very low (in the 0 closeness). Thus, we also performed a Pearson partial correlation and obtained that the partial correlation was -0.447, so if all other values are controlled to not interfere in the correlation between these 2 variables. So in this case, the relationship is higher, meaining that the relationship between the 2 variables is not linear, but exists a negative relationship between both of them.
 
-```{r echo=F}
+```{r echo=F, warning=FALSE}
 data<-read.csv("data/MergedDataset.csv",  header=TRUE)
 
 fit <- lm(NorthIceAverageExtent ~ Trend.for.Co2.amount ,data = data)
@@ -416,7 +442,7 @@ We want to predict the Extent in sea ice based on the amount of CO2 (Trend) pres
 We are going to join them by the Date, but before doing it, we need to clean and select the columns (make sure that there is no null values), aggregate the information by year and month in seaice (because in the co2 dataset the data is aggregated by month) and create a new Date variable from these. 
 Then, we perform an inner join to make sure that we will not have missing values. 
 
-```{r echo=F}
+```{r echo=F, warning=FALSE}
 #Load co2_data, select colums and format Date
 co2_data<-read.csv("./data/co2.csv",header=TRUE, na.strings = TRUE , as.is = TRUE)
 co2_data <- co2_data %>% select(-Decimal.Date) %>% select(-Number.of.Days)
@@ -438,21 +464,21 @@ joined_df<-inner_join(ice_data, co2_data, by='Date')
 After joining the datasets, we perform a linear model to observe how well our model fits into a line: ```Extent ~ Trend + Year + Month```. 
 The Multiple R-squared is telling us that this mode explains 64.5% of the variance present in the target variable. 
 
-```{r echo=F}
+```{r echo=F, warning=FALSE}
 linear_model<-lm(Extent ~ Trend + Year + Month, data = joined_df)
 summary(linear_model)
 ```
 
 But if we convert the Month to categorical variable (using as.factor function), we get a Multiple R-squared of 0.9438; a huge improvement. This is telling us that the value of Extent depends heavily on the month of the year.
 
-```{r echo=F}
+```{r echo=F, warning=FALSE}
 linear_model_categorical<-lm(Extent ~ Trend + Year + as.factor(Month), data = joined_df)
 summary(linear_model_categorical)
 ```
 
 After that, it is time to start applying machine learning algorithms using the caret package. We have chosen two: Knn and random forest. The first one is simple and powerful, and the second one is easy to understand and is good at handling both categorical and numerical data. 
 
-```{r echo=F}
+```{r echo=F, warning=FALSE}
 modeling_df<-joined_df %>% select(-Date) %>% select(-Average) %>% select(-Interpolated)
 trainIndex <- createDataPartition(modeling_df$Extent,
                                   p = .8,       # Proportion of data used for training
@@ -463,7 +489,7 @@ trainIndex <- createDataPartition(modeling_df$Extent,
 
 After randomly splitting the dataset into training (80%) and testing (20%), Knn is faster at training and achieves an RMSE around 0.6. 
 
-```{r echo=F }
+```{r  , warning=FALSE}
 # Subset your data into training and testing set
 training_set <- modeling_df[ trainIndex, ] # Select rows with generated indices
 test_set <- modeling_df[ -trainIndex, ]    # Remove rows with generated indices
@@ -481,7 +507,7 @@ rf_model<- train(Extent ~ Trend + Year + as.factor(Month), data = training_set,
 Comparing to the standard deviation of the target variable (1.43) is not bad, but still improvable. 
 We decided to use a **random forest** and include the variable ```Month``` as categorical. 
 It takes longer to train, but we get an RMSE around 0.34, which is much better. Training is performed with cross-validation technique (k=3) and parameter tuning is done with grid search.
-```{r echo=F}
+```{r echo=F, warning=FALSE}
 predictions <- predict(rf_model, test_set)
 test_set_with_pred <- test_set
 test_set_with_pred$predictions <- predictions
@@ -499,7 +525,7 @@ ggplot(  ) +
   scale_color_manual(labels = c( "Predicted", "Real"), values = c("blue", "red")) 
 ```
 
-```{r echo=F}
+```{r echo=F, warning=FALSE}
 # Compute statistics on the target variable
 summary(modeling_df$Extent)
 sd(modeling_df$Extent)
@@ -524,7 +550,7 @@ We used an ARIMA model in order to achieve that, and all the training process fo
 
 For the CO2, we obtained the following graph:
 
-```{r echo=F}
+```{r echo=F, warning=FALSE}
 data<-read.csv(
   #"https://raw.githubusercontent.com/Alpargata/dataprocesses/master/data/MergedDataset.csv",
   file="./data/MergedDataset.csv",
@@ -541,7 +567,7 @@ plot(fc3, xlab="Years trascurred since 1978" ,ylab="molar concentration of CO2")
 
 As we can see, there is a linear prediction in the co2 increase for the following years. This is problematic, but since 1978 all the CO2 concentrations have been linearily increasing, so this is a plausible and not desirable future. Lets see what happens for the Ice extention on the north hemisphere:
 
-```{r echo=F}
+```{r echo=F, warning=FALSE}
 ArimaIceforecast <- Arima(ts1[,2],order=c(1,1,3),seasonal=list(order=c(1,1,2), period=12))
 fc1=forecast(ArimaIceforecast,h=84)
 plot(fc1, xlab="Years trascurred since 1978" ,ylab="Northern Ice extention in 10^6 km squared") #We can see that the trend for the next years is to decrease constantly
@@ -565,6 +591,8 @@ The ICOADS dataset is also temporal, but it is huge. The dataset is in GoogleBig
 
 For the future work, adding some data would give more complexity to the correlations and dependencies. For example, giving information about the causes of ice melting: Heavy industry along time, meat consumption, solar radiation, human population, environmental awareness, etc, may be very useful for increasing the information and global scope of the study. 
 
+Also we would like to analyze better the CO2 level particularly to the main contributors in emmission of CO2, by continent and by country, and to see if the closest glaciers would melt differently when closer to an area of big CO2 emission level.
+This would also be helpful to see the trend in CO2 emission and how each region adapted to the climate change in the most recent years.
 
-```{r echo=F}
-```
+
+
