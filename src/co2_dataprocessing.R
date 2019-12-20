@@ -1,7 +1,6 @@
 # https://datahub.io/anuveyatsu/co2-ppm source web page
 library(ggplot2) #for plotting the results in a clear manner
-
-  library(dplyr)   # for manipulation on the dataset  
+library(dplyr)   # for manipulation on the dataset  
 library(corrplot)# to find correlation between variable 
 # Reading the data from file
 co2data<-read.csv(  "../data/co2.csv", header=TRUE, na.strings = TRUE )

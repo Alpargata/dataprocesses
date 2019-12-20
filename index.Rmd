@@ -12,7 +12,6 @@ library(ggplot2)
 library(dplyr)
 library(readr)
 library(corrplot)
-library(car)
 library(FactoMineR)
 library(RiverLoad)
 library(GGally)
@@ -29,7 +28,7 @@ library(forecast)
 This is our final projct for the subject Data Processes. The topic we chose is **Climate Change**.  
 
 ## Abstract
-Climate change and its impact on the earth have been a hot issue in the last years. Many scientific researches have been carried out in order to both analyse the phenomenon and try to find a realistic solution. Recently, after becoming aware that it is now to late to find a complete solution, the scientists have been focusing more on predicting the speed of the process in order to be prepared to face the problems. Our aim in this project is to try to predict how the rising of co2 in the last years will affect the state of glaciers in the next months. In order to make this prediction we investigated three different datasets and we processed the data in them with the goal to merge them together in a unique dataset to use for our analysis. Afterwards, we performed some machine learning techniques to make our prediction.
+Climate change and its impact on Earth have been a hot issue in the last years. Many scientific researches have been carried out in order to both analyse the phenomenon and try to find a realistic solution. Recently, after becoming aware that it is now to late to find a complete solution, the scientists have been focusing more on predicting the speed of the process in order to be prepared to face the problems. Our aim in this project is to try to predict how the rising of co2 in the last years will affect the state of glaciers in the next months. In order to make this prediction we investigated three different datasets and we processed the data in them with the goal to merge them together in a unique dataset to use for our analysis. Afterwards, we performed some machine learning techniques to make our prediction.
 
 ### Introduction
 We would like to answer this question because Climate Change is a really important issue we have now. The poles are melting, the sea level is growing and the temperature is rising. All of these problems can change the world and the way we live. We think people must be aware of this and try to slow the process. 

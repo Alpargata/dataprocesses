@@ -5,7 +5,7 @@ library(ggplot2)
 library(rworldmap)
 library(rworldxtra)
 
-ocean <- read.csv('../data/icoads_noaa.csv', header = TRUE)
+ocean <- read.csv("../data/icoads_noaa.csv", header = TRUE)
 
 
 # Choosing the important features
@@ -57,7 +57,7 @@ newOcean$Hemisphere <- revalue(newOcean$Hemisphere, c("(0,90]"="North"))
 # 
 # colfunc <- colorRampPalette(c("red","yellow", "lightblue", "blue"))
 # legend_image <- as.raster(matrix(colfunc(20), ncol=1))
-# plot(c(0,2),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = 'Air temperature in °C')
+# plot(c(0,2),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = 'Air temperature in ?C')
 # text(x=0.8, y = seq(0,0.5,l=4), labels = seq(from = -20, to = 40, by = 20))
 # rasterImage(legend_image, 0, 0, 0.5,0.5)
 
@@ -70,11 +70,11 @@ pal = colorRampPalette(c("blue","lightblue", "yellow", "red"))
 newOcean$order = findInterval(newOcean$sea_level_pressure, sort(newOcean$sea_level_pressure))
 plot(newmap, xlim = c(-20, 59), ylim = c(35, 71), asp = 1, col = "antiquewhite1")
 points(newOcean$longitude, newOcean$latitude, col=pal(nrow(newOcean))[newOcean$order], pch = 16, cex = .6)
-
+  
 colfunc <- colorRampPalette(c("red","yellow", "lightblue", "blue"))
 legend_image <- as.raster(matrix(colfunc(20), ncol=1))
 plot(c(0,2),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = 'Pressure in hPa')
-text(x=0.8, y = seq(0,1,l=2), labels = seq(955.5,1046.6,l=2))
+text(x=1.2, y = seq(0,0.5,l=2), labels = seq(955.5,1046.6,l=2))
 rasterImage(legend_image, 0, 0, 0.5,0.5)
 
 #Avarage temperature by months for the different hemispheres
@@ -104,3 +104,4 @@ ggplot(data=ocean_south, aes(x=month, y=air_temperature,2)) +
   ggtitle("Sea level pressure by month in the Southern Emisphere")+
   geom_bar(stat="identity", fill="steelblue")+
   theme_minimal()
+
