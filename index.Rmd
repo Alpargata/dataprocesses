@@ -235,7 +235,7 @@ points(newOcean$longitude, newOcean$latitude, col=pal(nrow(newOcean))[newOcean$o
 colfunc <- colorRampPalette(c("red","yellow", "lightblue", "blue"))
 legend_image <- as.raster(matrix(colfunc(20), ncol=1))
 plot(c(0,2),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = 'Pressure in hPa')
-text(x=0.8, y = seq(0,1,l=2), labels = seq(955.5,1046.6,l=2))
+text(x=1.2, y = seq(0,0.5,l=2), labels = seq(955.5,1046.6,l=2))
 rasterImage(legend_image, 0, 0, 0.5,0.5)
 
 #Avarage temperature by months for the different hemispheres
@@ -482,6 +482,23 @@ rf_model<- train(Extent ~ Trend + Year + as.factor(Month), data = training_set,
 Comparing to the standard deviation of the target variable (1.43) is not bad, but still improvable. 
 We decided to use a **random forest** and include the variable ```Month``` as categorical. 
 It takes longer to train, but we get an RMSE around 0.34, which is much better. Training is performed with cross-validation technique (k=3) and parameter tuning is done with grid search.
+```{r echo=F}
+predictions <- predict(rf_model, test_set)
+test_set_with_pred <- test_set
+test_set_with_pred$predictions <- predictions
+
+agg_per_month_test <- aggregate(test_set[, 3], list(test_set$Month), mean)
+agg_per_month_pr <- aggregate(test_set_with_pred[, 5], list(test_set_with_pred$Month), mean)
+
+ggplot(  ) +
+  ggtitle("Graph of predicted and real values of Random Forest") +
+  geom_point( aes(x = as.factor(test_set$Month), y = test_set$Extent, color = 'red', alpha = 0.5) ) + 
+  geom_point( aes(x = as.factor(test_set$Month) , y = predictions, color = 'blue',  alpha = 0.5)) + 
+  geom_line( aes(x = agg_per_month_test$Group.1, y = agg_per_month_test$Extent), col= "blue") +
+  geom_line( aes(x = agg_per_month_pr$Group.1, y = agg_per_month_pr$predictions), col= "red") +
+  labs(x = "Month", y = "Extent", color = "", alpha = 'Transperency') +
+  scale_color_manual(labels = c( "Predicted", "Real"), values = c("blue", "red")) 
+```
 
 ```{r echo=F}
 # Compute statistics on the target variable
