@@ -47,6 +47,24 @@ knn_model<- train(Extent ~ Trend + Year + Month, data = training_set,
 rf_model<- train(Extent ~ Trend + Year + as.factor(Month), data = training_set, 
                  method = "cforest", trControl=trainControl(method = "cv", number=3), tuneGrid=rf_grid)
 
+# Graph of predicted and real values of Random Forest
+predictions <- predict(rf_model, test_set)
+test_set_with_pred <- test_set
+test_set_with_pred$predictions <- predictions
+
+agg_per_month_test <- aggregate(test_set[, 3], list(test_set$Month), mean)
+agg_per_month_pr <- aggregate(test_set_with_pred[, 5], list(test_set_with_pred$Month), mean)
+
+ggplot(  ) +
+  ggtitle("Graph of predicted and real values of Random Forest") +
+  geom_point( aes(x = as.factor(test_set$Month), y = test_set$Extent, color = 'red', alpha = 0.5) ) + 
+  geom_point( aes(x = as.factor(test_set$Month) , y = predictions, color = 'blue',  alpha = 0.5)) + 
+  geom_line( aes(x = agg_per_month_test$Group.1, y = agg_per_month_test$Extent), col= "blue") +
+  geom_line( aes(x = agg_per_month_pr$Group.1, y = agg_per_month_pr$predictions), col= "red") +
+  labs(x = "Month", y = "Extent", color = "", alpha = 'Transperency') +
+  scale_color_manual(labels = c( "Predicted", "Real"), values = c("blue", "red"))
+
+
 # Compute statistics on the target variable
 summary(modeling_df$Extent)
 sd(modeling_df$Extent)
