@@ -23,6 +23,7 @@ library(rworldmap)
 library(rworldxtra)
 library(caret)
 library(lattice)
+library(forecast)
 ```
 
 This is our final projct for the subject Data Processes. The topic we chose is **Climate Change**.  
@@ -408,7 +409,9 @@ ggplotly(scatterplot) %>%
   add_lines(x = ~data$Trend.for.Co2.amount, y = fitted(fit))
  
 ```
+
 ### Predictions
+
 We want to predict the Extent in sea ice based on the amount of CO2 (Trend) present in the atmosphere. To do that, we need to merge the information from two datasets: co2 and seaice.
 
 We are going to join them by the Date, but before doing it, we need to clean and select the columns (make sure that there is no null values), aggregate the information by year and month in seaice (because in the co2 dataset the data is aggregated by month) and create a new Date variable from these. 
@@ -416,13 +419,13 @@ Then, we perform an inner join to make sure that we will not have missing values
 
 ```{r echo=F}
 #Load co2_data, select colums and format Date
-co2_data<-read.csv("../data/co2.csv",header=TRUE, na.strings = TRUE , as.is = TRUE)
+co2_data<-read.csv("./data/co2.csv",header=TRUE, na.strings = TRUE , as.is = TRUE)
 co2_data <- co2_data %>% select(-Decimal.Date) %>% select(-Number.of.Days)
 co2_data$Date<-as.Date(co2_data$Date, format = "%Y-%m-%d")
 print(paste0('number of missing values in the co2 dataset: ',sum(is.na(co2_data))))
 
 #Load ice_data and select columns
-ice_data<-read.csv("../data/seaice.csv",header=TRUE)
+ice_data<-read.csv("./data/seaice.csv",header=TRUE)
 ice_data<-ice_data %>% select(-Source.Data) %>% select (-Missing) %>% select (-Day)
 #Grouping by year and month, sort and format date
 ice_data<-ice_data %>% group_by(Year, Month) %>% summarise(Extent=mean(Extent)) %>% arrange(Year, Month)
@@ -506,26 +509,45 @@ We used an ARIMA model in order to achieve that, and all the training process fo
 For the CO2, we obtained the following graph:
 
 ```{r echo=F}
+data<-read.csv(
+  #"https://raw.githubusercontent.com/Alpargata/dataprocesses/master/data/MergedDataset.csv",
+  file="./data/MergedDataset.csv",
+  header=TRUE)
+ts1 <-ts(data,frequency=12) # We transform our data to a time series
+ts1.train<-window(ts1, start=1, end=35-0.0001) # We take 35 years to train
+ts1.test<-window(ts1, start=35) # The remaining years for the test
+
 ArimaCO2forecast <- Arima(ts1[,6],order=c(1,1,3),seasonal=list(order=c(1,1,2), period=12))
 fc3=forecast(ArimaCO2forecast,h=84)
 plot(fc3, xlab="Years trascurred since 1978" ,ylab="molar concentration of CO2")
 
 ```
+
 As we can see, there is a linear prediction in the co2 increase for the following years. This is problematic, but since 1978 all the CO2 concentrations have been linearily increasing, so this is a plausible and not desirable future. Lets see what happens for the Ice extention on the north hemisphere:
 
 ```{r echo=F}
 ArimaIceforecast <- Arima(ts1[,2],order=c(1,1,3),seasonal=list(order=c(1,1,2), period=12))
 fc1=forecast(ArimaIceforecast,h=84)
-plot(fc1, xlab="Years trascurred since 1978" ,ylab="Ice extention in 10^6 km squared") #We can see that the trend for the next years is to decrease constantly
+plot(fc1, xlab="Years trascurred since 1978" ,ylab="Northern Ice extention in 10^6 km squared") #We can see that the trend for the next years is to decrease constantly
 ```
-So as we can see, the loops will still ocurr, but a general decay trend is still hapening, so the ice will still melting in the northern part of the earth. Not a very promising future either!
+
+The loops will still ocurr, but a general decay trend is still hapening, so the ice will still melting in the northern part of the earth. Not a very promising future either!
+
 ## Results
 
+The results for this dataset study have already been stated, buts lets summarize:
+
+* Found linear increase in CO2 concenrations along the years.
+* South hemisphere ice extention is almost constant, while the north hemisphere is the one threatened by CO2
+* There is a correlation between CO2 and North hemisphere ice melting.
+* The multiple models trained for precition show us a worse future, given the data that we have.
+
 ## Discussion and future work  
-There are interesting aspects in the data that could be understan from the perspective of the time: seasonality, trend, etc. 
+There are interesting aspects in the data that could be understood from the perspective of the time: seasonality, trend, etc. 
 We would have also liked to include data from the ICOADS dataset(oceans) but, unfortunately, we only had data from 2010. 
 The ICOADS dataset is also temporal, but it is huge. The dataset is in GoogleBigQueries, so we can't download complete. As future work it will be interesting using RSpark and use the whole dataset to try to improve the predictions with the data af the oceans. 
 
+For the future work, adding some data would give more complexity to the correlations and dependencies. For example, giving information about the causes of ice melting: Heavy industry along time, meat consumption, solar radiation, human population, environmental awareness, etc, may be very useful for increasing the information and global scope of the study. 
 
 
 ```{r echo=F}
