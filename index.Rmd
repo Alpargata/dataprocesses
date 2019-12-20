@@ -21,6 +21,8 @@ library(Hmisc)
 library(tidyr)
 library(rworldmap)
 library(rworldxtra)
+library(caret)
+library(lattice)
 ```
 
 This is our final projct for the subject Data Processes. The topic we chose is **Climate Change**.  
@@ -82,7 +84,7 @@ co2data.cor = cor(x = co2data$Average , y = co2data$Interpolated)
 ```{r echo=F}
 summary(co2data)
 ```
-## Data Preparation 
+#### Data Preparation 
 Before proceeding to use the dataset we have to do some preliminary operation:
 
 1. Removing non useful features such as _Decimal.Date_ since it is a repetition of Date
@@ -160,10 +162,17 @@ ggplot(data = co2data_year, aes(x = Year, y = Trend) )+
 Dataset description
 https://rda.ucar.edu/datasets/ds548.0/
 
-The International Comprehensive Ocean-Atmosphere Data Set (ICOADS) is a global ocean marine meteorological and surface ocean dataset. It contains data measurements and visual observation collected by ships, moored and drifting buoys, coastal stations, and other marine and near-surface ocean platforms. Each marine report contains individual observations of meteorological and oceanographic variables, such as sea surface and air temperatures, wind, pressure, humidity, and cloudiness. The coverage is global and sampling density varies depending on date and geographic position relative to shipping routes and ocean observing systems. The dataset (which contains the observations from the year 2010) consists of 76 columns and 100,000 rows, but many of the columns present a lot of missing values (in many cases more than a half of the observations), so that we had to drop many of them. 
+The International Comprehensive Ocean-Atmosphere Data Set (ICOADS) is a global ocean marine meteorological and surface ocean dataset. It contains data measurements and visual observation collected by ships, moored and drifting buoys, coastal stations, and other marine and near-surface ocean platforms.  
+Each marine report contains individual observations of meteorological and oceanographic variables, such as sea surface and air temperatures, wind, pressure, humidity, and cloudiness. The coverage is global and sampling density varies depending on date and geographic position relative to shipping routes and ocean observing systems. 
+This dataset was download from GoogleBigQuery, because of its size, thaat' the reason because we only have data from 2010. 
+The dataset consists of 76 columns and 100,000 rows, but many of the columns present a lot of missing values (in many cases more than a half of the observations), so that we had to drop many of them. 
 
 #### Data processing
-Taking into account the general topic of interest, we decided to consider only the features regarding temperature, pressure of water, weather, clouds and waves. However, after analysing the number of NA values into the columns, we realized that most of them weren’t useful because of the high percentage of missing values (sometimes more than a half) so we deleted them. After doing this process, we deleted the remaining NA values, by getting rid of the rows containing them. Eventually, the final dataset was composed by 9 columns and 69,050 rows.
+Taking into account the general topic of interest, we decided to consider only the features regarding temperature, pressure of water, weather, clouds and waves. 
+However, after analysing the number of NA values into the columns, we realized that most of them weren’t useful due to the high percentage of missing values (sometimes more than a half) so we deleted them. 
+After doing this process, we also deleted the remaining NA values, by getting rid of the rows containing them. Eventually, the final dataset was composed by 9 columns and 69,050 rows.
+
+To understand the relationship between the variables, we proceeded with the study of the correlations between the variables. By plotting the correlation matrix, we could easily see that, as expected, the variables ```sea_level_temp``` and ```air_temperature``` were highly correlated. 
 
 ```{r echo=F}
 ocean <- read.csv('data/icoads_noaa.csv', header = TRUE)
@@ -187,13 +196,15 @@ newOcean <- na.omit(newOcean, seq_along(sea_surface_temp, air_temperature, sea_l
 newOcean.cor = cor(newOcean)
 ```
 
-To understand the relationship between the variables, we proceeded with the study of the correlations between the variables. By plotting the correlation matrix, we could easily see that, as expected, the variables sea_level_temp and air_temperature were highly correlated. Another observation which could be seen is that there is a negative correlation between sea_surface_temp and latitude. To investigate more about this, plotted sea_surface_temp vs latitude and we could observ a pattern which, as expected, showed that temperature is low in the poles and increases the closer we get to the equator.
+Another observation which could be seen is that there is a negative correlation between ```sea_surface_temp``` and ```latitude```. To investigate more about this, plotted ```sea_surface_temp``` vs ```latitude``` and we could observ a pattern which, as expected, showed that temperature is low in the poles and increases the closer we get to the equator.
+
+```{r}
+plot(newOcean$latitude, newOcean$sea_surface_temp)
+```
+
 Afterwards, in order to make the manipulation easier, we aggregated month and day into the variable Date. Moreover, we created a new variable, called Hemisphere, by binning the latitude.
 
-#### Graphs
-1.  Firstly, we choose to represent the values of the sea_level_pressure in a world map. Lower values of pressure are represented by blue colours, while higher values are represented by yellow and red colours.
 ```{r echo=F}
-plot(newOcean$latitude, newOcean$sea_surface_temp)
 
 # we aggregate the date to easen the manipulation
 newOcean$Date <- with(newOcean, sprintf("%d-%02d", month, day))
@@ -204,7 +215,12 @@ newOcean$Hemisphere <- revalue(newOcean$Hemisphere, c("(-90,0]"="South"))
 newOcean$Hemisphere <- revalue(newOcean$Hemisphere, c("(0,90]"="North"))
 ```
 
+#### Graphs
+1.  Firstly, we choose to represent the values of the ```sea_level_pressure``` in a world map. Lower values of pressure are represented by blue colours, while higher values are represented by yellow and red colours.
+
+
 2.  In order to make a comparison between the evolution of temperature during the year in the northern and southern pole, we plotted two bar charts.
+
 ```{r echo=F}
 # Plotting sea_level_pressure
 layout(matrix(1:2,ncol=2), width = c(2,1),height = c(1,1))
@@ -316,7 +332,35 @@ ggplot(anAvg,aes(x =Year, y =`Global Average` ))+
   geom_smooth(method='lm', formula= y~x)
 ```
 
+
+#### Questions of interest about Ice
 The other thing we did is we provided a different columns for each one of the hemisphere, instead of having 2 rows for each observation:  one for northern hemisphere and other for the southern, and added two extra columns: global extent and difference between north and south. This can be done, since all measures are an absolute value (10^6 km squared) and they are additive.
+
+#Question 1: How was the ice surface's evolution along all the time?
+As we can see, both hemisphere's extention on ice follow a cycle per year in which they compensate each other.
+However, we must note that the south hemisphere suffers a way higher variations in the extent than the northern hemisphere.
+We can infer that these cycles correspond to the 6 month season that take place on each pole, since they have 
+lower values during aproximately 6 months and then oscilate to a 6 months period of max values.
+
+We can also see here the corresponding values for each hemisphere.
+As we can see, the south one is almost constant along the years.
+But the north one is significatively damaged, as we can see from the regression line.
+
+#Question 2: Is there a cycle of ice regarding the days of the month?
+
+As we can see, there is no obious cycle in the days, maybe a little differences in the last days, but not a great difference. 
+
+#Question 3: Is there a cycle of ice regarding months of the year? Maybe related to seasonal weather?
+
+We can see that the seasonal effect is strong. However, for many of the months there are a lot of outliers, so it may imply that many exceptions to the normal value occurred. Maybe due to the trend along all years?
+
+#Question 4: Is there a different amount of extention of ice between the North
+Hemisphere and the South Hemisphere?
+
+We noted that before, there is.
+
+#Question 5: Annual average of ice?
+we can see that the average annual amount of ice is sharply decreasing: 2.5 M km^2 lost in less than 50 years!
 
  
 ## Methods
@@ -343,14 +387,123 @@ corrplot(rcor$r) # here we can see that there exists a negative relation between
 ```
 This plots show us an existing and negative correlation between the North hemisphere ice extension and CO2.
 This means that if CO2 concentrations increase, north hemisphere ice will decrease. Correlation and partial correlation were tested.
-Correlation between CO2 and North Ice Extension was -0.21. This may lead to confounding conclusions, since the value is very low (in the 0 closeness). Thus, we also performed a Pearson partial correlation and obtained that the partial correlation was -0.447, so if all other values are controlled to not interfere in the correlation between these 2 variables. So in this case, the relationship is higher, meaining that even the relationship between the 2 variables is not linear, it exist a negative relationship between both of them
+Correlation between CO2 and North Ice Extension was -0.21. This may lead to confounding conclusions, since the value is very low (in the 0 closeness). Thus, we also performed a Pearson partial correlation and obtained that the partial correlation was -0.447, so if all other values are controlled to not interfere in the correlation between these 2 variables. So in this case, the relationship is higher, meaining that even the relationship between the 2 variables is not linear, it exist a negative relationship between both of them.
+
+```{r}
+fit <- lm(NorthIceAverageExtent ~ Trend.for.Co2.amount ,data = data)
+
+scatterplot <- data %>%
+  ggplot(aes(x = Trend.for.Co2.amount, y = NorthIceAverageExtent, color = Date)) + 
+  ggtitle("Correlation between North Hemisphere Ice surface and CO2 concentration")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  geom_point() + 
+  labs(x = "Co2 Amounts (mole fraction)", 
+       y = "Ice extent (10^6 km)") +
+  theme(legend.position = "none")
+
+ggplotly(scatterplot) %>% 
+  add_lines(x = ~data$Trend.for.Co2.amount, y = fitted(fit))
+```
 
 ### Predictions
+We want to predict the Extent in sea ice based on the amount of CO2 (Trend) present in the atmosphere. To do that, we need to merge the information from two datasets: co2 and seaice.
+
+We are going to join them by the Date, but before doing it, we need to clean and select the columns (make sure that there is no null values), aggregate the information by year and month in seaice (because in the co2 dataset the data is aggregated by month) and create a new Date variable from these. 
+Then, we perform an inner join to make sure that we will not have missing values. 
+
+```{r}
+#Load co2_data, select colums and format Date
+co2_data<-read.csv("../data/co2.csv",header=TRUE, na.strings = TRUE , as.is = TRUE)
+co2_data <- co2_data %>% select(-Decimal.Date) %>% select(-Number.of.Days)
+co2_data$Date<-as.Date(co2_data$Date, format = "%Y-%m-%d")
+print(paste0('number of missing values in the co2 dataset: ',sum(is.na(co2_data))))
+
+#Load ice_data and select columns
+ice_data<-read.csv("../data/seaice.csv",header=TRUE)
+ice_data<-ice_data %>% select(-Source.Data) %>% select (-Missing) %>% select (-Day)
+#Grouping by year and month, sort and format date
+ice_data<-ice_data %>% group_by(Year, Month) %>% summarise(Extent=mean(Extent)) %>% arrange(Year, Month)
+ice_data$Date<-as.Date(paste0(ice_data$Year, "-", ice_data$Month,'-01'), format = "%Y-%m-%d")
+print(paste0('number of missing values in the ice dataset: ',sum(is.na(co2_data))))
+
+#Join both datasets by Date field
+joined_df<-inner_join(ice_data, co2_data, by='Date')
+```
+
+After joining the datasets, we perform a linear model to observe how well our model fits into a line: ```Extent ~ Trend + Year + Month```. 
+The Multiple R-squared is telling us that this mode explains 64.5% of the variance present in the target variable. 
+
+```{r echo=F}
+linear_model<-lm(Extent ~ Trend + Year + Month, data = joined_df)
+summary(linear_model)
+```
+
+But if we convert the Month to categorical variable (using as.factor function), we get a Multiple R-squared of 0.9438; a huge improvement. This is telling us that the value of Extent depends heavily on the month of the year.
+
+```{r echo=F}
+linear_model_categorical<-lm(Extent ~ Trend + Year + as.factor(Month), data = joined_df)
+summary(linear_model_categorical)
+```
+
+After that, it is time to start applying machine learning algorithms using the caret package. We have chosen two: Knn and random forest. The first one is simple and powerful, and the second one is easy to understand and is good at handling both categorical and numerical data. 
+
+```{r}
+modeling_df<-joined_df %>% select(-Date) %>% select(-Average) %>% select(-Interpolated)
+trainIndex <- createDataPartition(modeling_df$Extent,
+                                  p = .8,       # Proportion of data used for training
+                                  list = FALSE, # Return the values as a vector (as opposed to a list)
+                                  times = 1     # Only create one set of training indices
+)
+```
+
+After randomly splitting the dataset into training (80%) and testing (20%), Knn is faster at training and achieves an RMSE around 0.6. 
+
+```{r}
+# Subset your data into training and testing set
+training_set <- modeling_df[ trainIndex, ] # Select rows with generated indices
+test_set <- modeling_df[ -trainIndex, ]    # Remove rows with generated indices
+
+# Grid for the hyperparameter tunning
+rf_grid <- expand.grid(mtry=c(3,6,9,12,15))
+knn_grid <- expand.grid(k=c(3,4,5,6,7))
+knn_model<- train(Extent ~ Trend + Year + Month, data = training_set, 
+                  method = "knn", trControl=trainControl(method = "cv", number=3), tuneGrid=knn_grid)
+rf_model<- train(Extent ~ Trend + Year + as.factor(Month), data = training_set, 
+                 method = "cforest", trControl=trainControl(method = "cv", number=3), tuneGrid=rf_grid)
+
+```
+
+Comparing to the standard deviation of the target variable (1.43) is not bad, but still improvable. 
+We decided to use a **random forest** and include the variable ```Month``` as categorical. 
+It takes longer to train, but we get an RMSE around 0.34, which is much better. Training is performed with cross-validation technique (k=3) and parameter tuning is done with grid search.
+
+```{r}
+# Compute statistics on the target variable
+summary(modeling_df$Extent)
+sd(modeling_df$Extent)
+
+# Compute the prediction error RMSE
+print(paste0('RMSE of prediction with knn model in training dataset: ', RMSE(predict(knn_model, training_set), training_set$Extent)))
+print(paste0('RMSE of prediction with knn model in test dataset: ', RMSE(predict(knn_model, test_set), test_set$Extent)))
+
+# Compute the prediction error RMSE
+print(paste0('RMSE of prediction with random forest model in training dataset: ', RMSE(predict(rf_model, training_set), training_set$Extent)))
+print(paste0('RMSE of prediction with random forest model in test dataset: ', RMSE(predict(rf_model, test_set), test_set$Extent)))
+
+```
+
+We can conclude, after the linear model and the random forest, that we can find a clear pattern in the data from these two datasets; meaning that we can predict the extent of ice through co2 level, year and month of the year.
+
+
 
 ## Results
 
 ## Discussion and future work  
+Another interesting approach would have been to use time series analysis. There are interesting aspects in the data that could be understan from the perspective of the time: seasonality, trend, etc. 
+We would have also liked to include data from the ICOADS dataset(oceans) but, unfortunately, we only had data from 2010. 
 The ICOADS dataset is also temporal, but it is huge. The dataset is in GoogleBigQueries, so we can't download complete. As future work it will be interesting using RSpark and use the whole dataset to try to improve the predictions with the data af the oceans. 
+
+
 
 ```{r echo=F}
 ```
